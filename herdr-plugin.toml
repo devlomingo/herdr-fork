@@ -1,34 +1,37 @@
-id = "devlomingo.claude-fork"
-name = "claude-fork"
-version = "0.1.1"
-description = "Pick any message in a Claude Code conversation and fork the conversation from that point into a new pane."
+id = "devlomingo.herdr-fork"
+name = "herdr-fork"
+version = "0.2.0"
+description = "Fork any coding agent's conversation from any message, into a new herdr pane."
 platforms = ["macos", "linux"]
 # pane.agent_session and plugin pane --env are both available from 0.9.0.
 min_herdr_version = "0.9.0"
 
+[[build]]
+command = ["cargo", "build", "--release", "--locked"]
+
 [[panes]]
 id = "picker"
-title = "claude-fork"
+title = "herdr-fork"
 placement = "overlay"
-command = ["python3", "scripts/fork.py"]
+command = ["./target/release/herdr-fork", "pick"]
 
 [[actions]]
 id = "fork"
-title = "claude-fork: fork conversation from a message"
-description = "Pick one of your messages in the focused Claude Code pane; a copy of the conversation up to that point opens beside it."
+title = "herdr-fork: fork conversation from a message"
+description = "Pick one of your messages in the focused agent pane; a fork of the conversation from that point opens beside it."
 contexts = ["pane", "workspace"]
-command = ["python3", "scripts/fork.py", "--open"]
+command = ["./target/release/herdr-fork", "open"]
 
 [[actions]]
 id = "setup-keys"
-title = "claude-fork: install the prefix+shift+f keybinding"
-description = "Write one marked block to your Herdr config (backed up first) and reload it."
+title = "herdr-fork: install the prefix+shift+f keybinding"
+description = "Append one marked block to your herdr config (backed up first) and reload it."
 contexts = ["workspace"]
-command = ["python3", "scripts/fork.py", "--setup-keys"]
+command = ["./target/release/herdr-fork", "setup-keys"]
 
 [[actions]]
 id = "remove-keys"
-title = "claude-fork: remove the keybinding"
+title = "herdr-fork: remove the keybinding"
 description = "Delete the block setup-keys wrote."
 contexts = ["workspace"]
-command = ["python3", "scripts/fork.py", "--remove-keys"]
+command = ["./target/release/herdr-fork", "remove-keys"]
