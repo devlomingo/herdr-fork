@@ -1,6 +1,6 @@
 id = "devlomingo.claude-fork"
 name = "claude-fork"
-version = "0.1.0"
+version = "0.1.1"
 description = "Pick any message in a Claude Code conversation and fork the conversation from that point into a new pane."
 platforms = ["macos", "linux"]
 # pane.agent_session and plugin pane --env are both available from 0.9.0.
