@@ -1,0 +1,25 @@
+[package]
+name = "herdr-fork"
+version = "0.2.0"
+edition = "2021"
+description = "Fork any coding agent's conversation from any message, into a new herdr pane"
+license = "MIT"
+repository = "https://github.com/devlomingo/herdr-fork"
+rust-version = "1.80"
+
+[[bin]]
+name = "herdr-fork"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+crossterm = "0.28"
+serde_json = { version = "1", features = ["preserve_order"] }
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+strip = true
