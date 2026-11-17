@@ -1,0 +1,34 @@
+id = "devlomingo.claude-fork"
+name = "claude-fork"
+version = "0.1.0"
+description = "Pick any message in a Claude Code conversation and fork the conversation from that point into a new pane."
+platforms = ["macos", "linux"]
+# pane.agent_session and plugin pane --env are both available from 0.9.0.
+min_herdr_version = "0.9.0"
+
+[[panes]]
+id = "picker"
+title = "claude-fork"
+placement = "overlay"
+command = ["python3", "scripts/fork.py"]
+
+[[actions]]
+id = "fork"
+title = "claude-fork: fork conversation from a message"
+description = "Pick one of your messages in the focused Claude Code pane; a copy of the conversation up to that point opens beside it."
+contexts = ["pane", "workspace"]
+command = ["python3", "scripts/fork.py", "--open"]
+
+[[actions]]
+id = "setup-keys"
+title = "claude-fork: install the prefix+shift+f keybinding"
+description = "Write one marked block to your Herdr config (backed up first) and reload it."
+contexts = ["workspace"]
+command = ["python3", "scripts/fork.py", "--setup-keys"]
+
+[[actions]]
+id = "remove-keys"
+title = "claude-fork: remove the keybinding"
+description = "Delete the block setup-keys wrote."
+contexts = ["workspace"]
+command = ["python3", "scripts/fork.py", "--remove-keys"]
