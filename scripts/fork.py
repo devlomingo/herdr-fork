@@ -263,7 +263,9 @@ def setup_keys(remove=False):
             return notify("claude-fork", f"{DEFAULT_KEY} is already bound in {path}; bind {PLUGIN_ID}.fork yourself")
         block = (f"{BEGIN}\n[[keys.command]]\nkey = \"{DEFAULT_KEY}\"\ntype = \"plugin_action\"\n"
                  f"command = \"{PLUGIN_ID}.fork\"\ndescription = \"claude-fork: fork conversation from a message\"\n{END}\n")
-        rest = block + "\n" + rest
+        # Appended, never prepended: a table header at the top would swallow the
+        # file's top-level keys into it.
+        rest = (rest.rstrip("\n") + "\n\n" if rest.strip() else "") + block
     if os.path.isfile(path):
         shutil.copy2(path, path + ".bak-claude-fork")
     os.makedirs(os.path.dirname(path), exist_ok=True)
