@@ -87,6 +87,36 @@ class ForkTest(unittest.TestCase):
 
 
 class KeysTest(unittest.TestCase):
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.cfg = os.path.join(self.dir.name, "config.toml")
+        os.environ["HERDR_CONFIG_PATH"] = self.cfg
+        os.environ["HERDR_BIN_PATH"] = "true"
+        fork.HERDR = "true"
+
+    def tearDown(self):
+        self.dir.cleanup()
+
+    def test_setup_appends_after_top_level_keys_and_remove_restores(self):
+        original = "onboarding = false\n\n[ui]\nx = 1\n"
+        with open(self.cfg, "w") as f:
+            f.write(original)
+        fork.setup_keys()
+        text = open(self.cfg).read()
+        self.assertTrue(text.startswith(original))
+        self.assertTrue(text.rstrip().endswith(fork.END))
+        fork.setup_keys()
+        self.assertEqual(open(self.cfg).read().count(fork.BEGIN), 1)
+        fork.setup_keys(remove=True)
+        self.assertEqual(open(self.cfg).read().strip(), original.strip())
+
+    def test_setup_leaves_a_taken_key_alone(self):
+        taken = f'[[keys.command]]\nkey = "{fork.DEFAULT_KEY}"\n'
+        with open(self.cfg, "w") as f:
+            f.write(taken)
+        fork.setup_keys()
+        self.assertEqual(open(self.cfg).read(), taken)
+
     def test_strip_block_removes_only_the_managed_block(self):
         text = f"a = 1\n{fork.BEGIN}\nkey = 'x'\n{fork.END}\nb = 2\n"
         self.assertEqual(fork.strip_block(text), "a = 1\nb = 2\n")
