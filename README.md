@@ -36,7 +36,7 @@ herdr plugin install devlomingo/herdr-claude-fork
 Then bind a key. Run the plugin's **"install the prefix+shift+f keybinding"** action from Herdr's command palette, or add it to your config yourself:
 
 ```bash
-herdr plugin action invoke --plugin devlomingo.claude-fork setup-keys
+herdr plugin action invoke devlomingo.claude-fork.setup-keys
 ```
 
 ```toml
@@ -48,7 +48,7 @@ command = "devlomingo.claude-fork.fork"
 description = "claude-fork: fork conversation from a message"
 ```
 
-The setup action backs up your config to `config.toml.bak-claude-fork`, writes one marked block, and reloads Herdr. If `prefix+shift+f` is already taken, it changes nothing and tells you so.
+The setup action backs up your config to `config.toml.bak-claude-fork`, appends one marked block to the end, and reloads Herdr. If `prefix+shift+f` is already taken, it changes nothing and tells you so.
 
 ## Use
 
@@ -103,7 +103,7 @@ claude --resume <new-id>
 | *the focused pane is not running Claude Code* | Herdr doesn't recognise Claude in that pane. Run `herdr integration install claude`, then restart Claude in the pane. |
 | *could not find this pane's Claude transcript* | The session has no messages saved yet. Send one message and try again. |
 | *nothing comes before the first message* | You pressed `b` on the first message. Use `Enter`, or start a new Claude session. |
-| Nothing happens on the key | Run `herdr plugin log devlomingo.claude-fork` to see what failed, and check the binding with `herdr config check`. |
+| Nothing happens on the key | Run `herdr plugin log list` to see what failed, and check the binding with `herdr config check`. |
 
 ## Limitations
 
@@ -114,7 +114,7 @@ claude --resume <new-id>
 ## Uninstall
 
 ```bash
-herdr plugin action invoke --plugin devlomingo.claude-fork remove-keys
+herdr plugin action invoke devlomingo.claude-fork.remove-keys
 herdr plugin uninstall devlomingo.claude-fork
 ```
 
