@@ -27,7 +27,7 @@ use serde_json::Value;
 use adapter::{select, Adapter, Mode, Support};
 use picker::{Choice, Item, Picker};
 use settings::Settings;
-use util::{clock, copy_to_clipboard, match_selection, truncate_chars};
+use util::{clock, copy_to_clipboard, match_selection, paste_from_clipboard, truncate_chars};
 
 const PLUGIN_ID: &str = "devlomingo.herdr-fork";
 const USAGE: &str = "usage: herdr-fork pick | open | setup-keys | remove-keys
@@ -182,16 +182,20 @@ fn pick() -> Result<()> {
     let items = picker::items(&prompts);
     let mut sel = 0;
     let mut note = None;
-    if let Ok(text) = std::env::var("FORK_SELECTED_TEXT") {
-        if !text.trim().is_empty() {
-            match match_selection(&prompts, &text) {
-                Some(n) => {
-                    sel = items.iter().position(|i| i.n == n).unwrap_or(0);
-                    note = Some(format!("selection is in message {}; enter or b forks from it", n + 1));
-                }
-                None => note = Some("the selected text is not in any of your messages or answers".into()),
+    let selected = std::env::var("FORK_SELECTED_TEXT").ok().filter(|t| !t.trim().is_empty());
+    if let Some(text) = &selected {
+        match match_selection(&prompts, text) {
+            Some(n) => {
+                sel = items.iter().position(|i| i.n == n).unwrap_or(0);
+                note = Some(format!("selection is in message {}; enter or b forks from it", n + 1));
             }
+            None => note = Some("the selected text is not in any of your messages or answers".into()),
         }
+    } else if let Some(n) = paste_from_clipboard().and_then(|t| match_selection(&prompts, &t)) {
+        // herdr drops a mouse selection when the prefix key is pressed, but
+        // copy-on-select already put it on the clipboard.
+        sel = items.iter().position(|i| i.n == n).unwrap_or(0);
+        note = Some(format!("copied text is in message {}; enter or b forks from it", n + 1));
     }
     let picker = Picker {
         title: format!("herdr-fork · {name} · fork from which message?"),
