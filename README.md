@@ -104,6 +104,9 @@ an answer) and press the key: the picker opens with that message already
 highlighted and says so, so Enter or `b` forks right there. herdr passes the
 selection to the action as `selected_text`; a prompt that contains the
 selection wins, otherwise the turn whose answer contains it.
+herdr clears a mouse selection when you press the prefix key, so when no
+selection arrives the picker looks for the text you last copied (herdr copies
+on select) and starts on its message if it finds one.
 
 ## Settings
 
