@@ -1,4 +1,5 @@
 use std::io::Write;
+use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -38,15 +39,27 @@ pub fn home() -> PathBuf {
     std::env::var_os("HOME").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."))
 }
 
-/// Write a new file; refuse to replace one that exists so a fork can never
-/// clobber another session.
+/// Create a directory (and missing parents) readable only by the owner, as
+/// the agents keep their own session directories.
+pub fn private_dir(dir: &Path) -> Result<()> {
+    std::fs::DirBuilder::new()
+        .recursive(true)
+        .mode(0o700)
+        .create(dir)
+        .with_context(|| format!("creating {}", dir.display()))
+}
+
+/// Write a new owner-only file; refuse to replace one that exists so a fork
+/// can never clobber another session. Transcripts are private, like the
+/// originals (0600).
 pub fn write_new(path: &Path, data: &[u8]) -> Result<()> {
     if let Some(dir) = path.parent() {
-        std::fs::create_dir_all(dir)?;
+        private_dir(dir)?;
     }
     let mut f = std::fs::OpenOptions::new()
         .write(true)
         .create_new(true)
+        .mode(0o600)
         .open(path)
         .with_context(|| format!("creating {}", path.display()))?;
     f.write_all(data)?;
@@ -134,5 +147,17 @@ mod tests {
         assert_eq!(match_selection(&ps, "   "), None);
         let ar = vec![p("اشرح الكود", ""), p("say x", "")];
         assert_eq!(match_selection(&ar, "اشرح"), Some(0));
+    }
+
+    #[test]
+    fn new_files_and_dirs_are_owner_only() {
+        use std::os::unix::fs::PermissionsExt;
+        let d = tempfile::tempdir().unwrap();
+        let f = d.path().join("a/b/c.jsonl");
+        write_new(&f, b"x").unwrap();
+        let mode = |p: &Path| std::fs::metadata(p).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode(&f), 0o600);
+        assert_eq!(mode(&d.path().join("a/b")), 0o700);
+        assert!(write_new(&f, b"y").is_err());
     }
 }
