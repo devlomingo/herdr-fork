@@ -92,6 +92,19 @@ pub fn copy_to_clipboard(text: &str) -> bool {
     false
 }
 
+pub fn paste_from_clipboard() -> Option<String> {
+    let candidates: &[&[&str]] = &[
+        &["pbpaste"],
+        &["wl-paste", "--no-newline"],
+        &["xclip", "-selection", "clipboard", "-o"],
+        &["xsel", "--clipboard", "--output"],
+    ];
+    candidates.iter().find_map(|argv| {
+        let out = Command::new(argv[0]).args(&argv[1..]).stderr(Stdio::null()).output().ok()?;
+        out.status.success().then(|| String::from_utf8_lossy(&out.stdout).into_owned())
+    })
+}
+
 fn normalize(s: &str) -> String {
     // Selections copied from a pane carry the agent's prompt glyph and bullets.
     let trimmed = s.trim().trim_start_matches(['❯', '›', '>', '●', '⏺', '•', '$', ' ']);
