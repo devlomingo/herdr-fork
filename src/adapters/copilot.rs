@@ -13,7 +13,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use serde_json::Value;
 
 use crate::adapter::{Adapter, Mode, NewSession, PaneInfo, Prompt, Session};
-use crate::util::{collapse, home, parse_time, write_new};
+use crate::util::{collapse, home, parse_time, private_dir, write_new};
 
 pub struct Copilot {
     bin: String,
@@ -70,7 +70,7 @@ fn is_prompt(v: &Value) -> bool {
 }
 
 fn copy_dir(from: &Path, to: &Path, skip: &dyn Fn(&Path) -> bool) -> Result<()> {
-    std::fs::create_dir_all(to)?;
+    private_dir(to)?;
     for e in std::fs::read_dir(from)?.flatten() {
         let p = e.path();
         if skip(&p) {
@@ -309,6 +309,10 @@ mod tests {
         assert!(ws.starts_with(&format!("id: {}\n", new.id)));
         assert!(dir.join("checkpoints/index.md").is_file());
         assert!(!dir.join("inuse.lock").exists());
+        use std::os::unix::fs::PermissionsExt;
+        let mode = |p: &std::path::Path| fs::metadata(p).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode(&dir), 0o700);
+        assert_eq!(mode(&dir.join("events.jsonl")), 0o600);
         assert_eq!(fs::read(&s.path).unwrap(), before);
         assert_eq!(c.resume_command(&new), ["copilot", "--resume", new.id.as_str()]);
     }
